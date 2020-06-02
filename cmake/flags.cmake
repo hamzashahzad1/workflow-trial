@@ -6,7 +6,6 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_C_COMPILER_ID}" STREQUA
   set(ZEEK_AGENT_COMMON_COMPILATION_FLAGS
     -Wall
     -Wextra
-    -Werror
     -Wpedantic
     -Wunused
   )

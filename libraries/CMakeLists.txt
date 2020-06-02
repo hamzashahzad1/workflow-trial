@@ -10,8 +10,6 @@ function(zeekAgentLibraries)
 
   else()
     target_compile_options(zeek_agent_libraries_settings INTERFACE
-      /W0
-      /WX-
     )
   endif()
 

@@ -42,8 +42,6 @@ function(zeekAgentComponentsConfiguration)
 
   else()
     target_compile_options(thirdparty_rapidjson_warning_settings INTERFACE
-      /W0
-      /WX-
     )
   endif()
 
