@@ -8,6 +8,9 @@ function(zeekAgentTablesAudisp)
     src/socketeventstableplugin.h
     src/socketeventstableplugin.cpp
 
+    src/fileeventstableplugin.h
+    src/fileeventstableplugin.cpp
+
     src/processeventstableplugin.h
     src/processeventstableplugin.cpp
 

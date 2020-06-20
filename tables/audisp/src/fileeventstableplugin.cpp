@@ -161,7 +161,6 @@ Status FileEventsTablePlugin::generateRow(
 
   row["time"] = static_cast<std::int64_t>(current_timestamp.count());
 
-
   row["file_path"] = "TODO";
   row["inode"] = "TODO";
 
