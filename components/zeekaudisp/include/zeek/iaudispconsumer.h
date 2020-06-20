@@ -13,7 +13,7 @@ public:
   /// \brief SYSCALL record data
   struct SyscallRecordData final {
     /// \brief Supported syscalls
-    enum class Type { Execve, ExecveAt, Fork, VFork, Clone, Bind, Connect };
+    enum class Type { Execve, ExecveAt, Fork, VFork, Clone, Bind, Connect, Open };
 
     /// \brief Event type
     Type type;
