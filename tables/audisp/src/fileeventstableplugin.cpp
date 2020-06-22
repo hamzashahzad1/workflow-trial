@@ -3,6 +3,8 @@
 #include <chrono>
 #include <mutex>
 
+#include <iostream>
+
 namespace zeek {
 struct FileEventsTablePlugin::PrivateData final {
   PrivateData(IZeekConfiguration &configuration_, IZeekLogger &logger_)
@@ -73,6 +75,8 @@ Status FileEventsTablePlugin::generateRowList(RowList &row_list) {
 Status FileEventsTablePlugin::processEvents(
     const IAudispConsumer::AuditEventList &event_list) {
   RowList generated_row_list;
+
+  std::cout << "Wajih: I am here" << std::endl;
 
   for (const auto &audit_event : event_list) {
     Row row;
