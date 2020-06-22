@@ -143,7 +143,7 @@ Status FileEventsTablePlugin::generateRow(
 
   case IAudispConsumer::SyscallRecordData::Type::OpenAt:
     action = "openat";
-    std::cout << "Wajih found open syscall" << std::endl;
+    std::cout << "Wajih found openat syscall" << std::endl;
     break;
 
   default:
