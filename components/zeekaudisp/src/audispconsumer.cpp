@@ -276,6 +276,7 @@ AudispConsumer::parseSyscallRecord(std::optional<SyscallRecordData> &data,
       syscall_number = std::strtoll(field_value, nullptr, 10);
 
       auto syscall_type_it = kNumberToSyscallType.find(syscall_number);
+      std::cout << "syscall " << syscall_number <<  " found !!!!!" << std::endl;
       if (syscall_type_it == kNumberToSyscallType.end()) {
 	std::cout << "syscall " << syscall_number <<  " not found !!!!!" << std::endl;
         return Status::success();

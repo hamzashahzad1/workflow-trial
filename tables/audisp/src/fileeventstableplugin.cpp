@@ -142,7 +142,7 @@ Status FileEventsTablePlugin::generateRow(
     break;
 
   default:
-    std::cout << "Wajih type not found syscall" << std::endl;
+    //std::cout << "Wajih type not found syscall" << std::endl;
     return Status::success();
   }
 
