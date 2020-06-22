@@ -159,7 +159,7 @@ Status FileEventsTablePlugin::generateRow(
   row["path"] = syscall_data.exe;
 
   // auto fd = std::strtoll(syscall_data.a0.c_str(), nullptr, 16U);
-  row["fd"] = "TODO"
+  row["fd"] = "TODO";
 
   row["auid"] = syscall_data.auid;
 
