@@ -6,6 +6,8 @@
 #include <sstream>
 #include <type_traits>
 
+#include <iostream>
+
 namespace zeek {
 namespace {
 struct VirtualTableSession final {
@@ -362,6 +364,7 @@ VirtualTableModule::generateSQLTableDefinition(std::string &sql_statement,
   buffer << ")\n";
 
   sql_statement = buffer.str();
+    std::cout << "table created" << buffer.str() << std::endl;
   return Status::success();
 }
 
