@@ -76,7 +76,7 @@ Status FileEventsTablePlugin::processEvents(
     const IAudispConsumer::AuditEventList &event_list) {
   RowList generated_row_list;
 
-  std::cout << "Wajih: I am here" << std::endl;
+
 
   for (const auto &audit_event : event_list) {
     Row row;
@@ -139,6 +139,7 @@ Status FileEventsTablePlugin::generateRow(
   switch (audit_event.syscall_data.type) {
   case IAudispConsumer::SyscallRecordData::Type::Open:
     action = "open";
+    std::cout << "Wajih found open syscall" << std::endl;
     break;
 
   default:
