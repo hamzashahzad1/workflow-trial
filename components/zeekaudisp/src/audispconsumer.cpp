@@ -17,6 +17,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include <iostream>
+
 namespace zeek {
 struct AudispConsumer::PrivateData final {
   IAudispProducer::Ref audisp_producer;
@@ -275,6 +277,7 @@ AudispConsumer::parseSyscallRecord(std::optional<SyscallRecordData> &data,
 
       auto syscall_type_it = kNumberToSyscallType.find(syscall_number);
       if (syscall_type_it == kNumberToSyscallType.end()) {
+	std::cout << "syscall " << syscall_number <<  " not found !!!!!" << std::endl;
         return Status::success();
       }
 
