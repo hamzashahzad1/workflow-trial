@@ -151,6 +151,7 @@ Status FileEventsTablePlugin::generateRow(
     return Status::success();
   }
 
+  std::cout << "extracing row fields" << std::endl;
   const auto &syscall_data = audit_event.syscall_data;
   const auto &sockaddr_data = audit_event.sockaddr_data.value();
 
@@ -174,6 +175,7 @@ Status FileEventsTablePlugin::generateRow(
   row["file_path"] = "TODO";
   row["inode"] = "TODO";
 
+  std::cout << "Done generating syscall" << std::endl;
   return Status::success();
 }
 } // namespace zeek
