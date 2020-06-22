@@ -135,9 +135,9 @@ Status FileEventsTablePlugin::generateRow(
   row = {};
 
   std::string action;
-
+  std::cout << "Wajih in generate row switch" << std::endl;
   switch (audit_event.syscall_data.type) {
-    std::cout << "Wajih in generate row switch" << std::endl;
+
   case IAudispConsumer::SyscallRecordData::Type::Open:
     action = "open";
     std::cout << "Wajih found open syscall" << std::endl;
