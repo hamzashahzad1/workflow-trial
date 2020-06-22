@@ -153,27 +153,26 @@ Status FileEventsTablePlugin::generateRow(
 
   std::cout << "extracing row fields" << std::endl;
   const auto &syscall_data = audit_event.syscall_data;
-  const auto &sockaddr_data = audit_event.sockaddr_data.value();
 
   row["action"] = action;
   row["pid"] = syscall_data.process_id;
   row["path"] = syscall_data.exe;
 
   // auto fd = std::strtoll(syscall_data.a0.c_str(), nullptr, 16U);
-  // row["fd"] = static_cast<std::int64_t>(fd);
+  row["fd"] = "TODO"
 
-  // row["auid"] = syscall_data.auid;
+  row["auid"] = syscall_data.auid;
 
-  // row["success"] =
-  //     static_cast<std::int64_t>(audit_event.syscall_data.succeeded ? 1 : 0);
+  row["success"] =
+      static_cast<std::int64_t>(audit_event.syscall_data.succeeded ? 1 : 0);
 
-  // auto current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
-  //     std::chrono::system_clock::now().time_since_epoch());
+  auto current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
 
-  // row["time"] = static_cast<std::int64_t>(current_timestamp.count());
+  row["time"] = static_cast<std::int64_t>(current_timestamp.count());
 
-  // row["file_path"] = "TODO";
-  // row["inode"] = "TODO";
+  row["file_path"] = "TODO";
+  row["inode"] = "TODO";
 
   std::cout << "Done generating syscall" << std::endl;
   return Status::success();
