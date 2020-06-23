@@ -61,7 +61,7 @@ Status VirtualDatabase::registerTable(IVirtualTable::Ref table) {
   }
 
   table = {};
-  std::cout << "Wajih: Creating table: " << virtual_table_module->name().c_str() << std::end;
+  std::cout << "Wajih: Creating table: " << virtual_table_module->name().c_str() << std::endl;
   auto err = sqlite3_create_module_v2(d->sqlite_database,
                                       virtual_table_module->name().c_str(),
                                       virtual_table_module->sqliteModule(),
