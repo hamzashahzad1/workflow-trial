@@ -151,7 +151,25 @@ Status FileEventsTablePlugin::generateRow(
     return Status::success();
   }
 
-  std::cout << "extracing row fields" << std::endl;
+  if (!audit_event.path_data.has_value()) {
+    std::cout << "FAILUREEEEEEEEEE" << std::endl;
+      return Status::failure(
+          "Missing an AUDIT_PATH record from an execve(at) event");
+    }
+
+    if (!audit_event.cwd_data.has_value()) {
+      std::cout << "FAILUREEEEEEEEEE CWD" << std::endl;
+      return Status::failure(
+          "Missing an AUDIT_CWD record from an execve(at) event");
+    }
+
+    const auto &path_record = audit_event.path_data.value();
+    const auto &last_path_entry = path_record.front();
+    const auto &cwd_data = audit_event.cwd_data.value();
+
+    std::cout << "file path " << last_path_entry.path << std::endl;
+    std::cout << "file path cwd " << audit_event.cwd_data.value() << std::endl;
+
   const auto &syscall_data = audit_event.syscall_data;
 
   row["action"] = action;
