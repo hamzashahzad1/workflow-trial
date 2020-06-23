@@ -6,6 +6,7 @@
 #include <mutex>
 #include <thread>
 
+
 namespace zeek {
 namespace {
 Status querySchedulerThread(QueryScheduler &query_scheduler,

@@ -8,6 +8,8 @@
 
 #include <sqlite3.h>
 
+#include <iostream>
+
 namespace zeek {
 struct VirtualDatabase::PrivateData final {
   sqlite3 *sqlite_database{nullptr};
@@ -50,6 +52,7 @@ Status VirtualDatabase::registerTable(IVirtualTable::Ref table) {
     return status;
   }
 
+  std::cout << "Wajih: Creating table: " << virtual_table_module->name().c_str() << std::end;
   VirtualTableModule::Ref virtual_table_module;
   status = VirtualTableModule::create(virtual_table_module, table);
 
@@ -128,6 +131,9 @@ Status VirtualDatabase::query(QueryOutput &output,
   output = {};
 
   SqliteStatement sql_stmt;
+
+  std::cout << "Wajih: Executing query: " << query << std::endl;
+
   auto status = prepareSqliteStatement(sql_stmt, d->sqlite_database, query);
   if (!status.succeeded()) {
     return status;
