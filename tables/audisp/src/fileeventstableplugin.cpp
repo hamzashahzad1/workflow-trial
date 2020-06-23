@@ -151,17 +151,19 @@ Status FileEventsTablePlugin::generateRow(
     return Status::success();
   }
 
+  if (!audit_event.cwd_data.has_value()) {
+      std::cout << "FAILUREEEEEEEEEE CWD" << std::endl;
+      return Status::failure(
+          "Missing an AUDIT_CWD record from an execve(at) event");
+    }
+
+
   if (!audit_event.path_data.has_value()) {
     std::cout << "FAILUREEEEEEEEEE" << std::endl;
       return Status::failure(
           "Missing an AUDIT_PATH record from an execve(at) event");
     }
 
-    if (!audit_event.cwd_data.has_value()) {
-      std::cout << "FAILUREEEEEEEEEE CWD" << std::endl;
-      return Status::failure(
-          "Missing an AUDIT_CWD record from an execve(at) event");
-    }
 
     const auto &path_record = audit_event.path_data.value();
     const auto &last_path_entry = path_record.front();
