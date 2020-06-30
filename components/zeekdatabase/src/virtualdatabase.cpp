@@ -8,7 +8,6 @@
 
 #include <sqlite3.h>
 
-#include <iostream>
 
 namespace zeek {
 struct VirtualDatabase::PrivateData final {
@@ -61,7 +60,6 @@ Status VirtualDatabase::registerTable(IVirtualTable::Ref table) {
   }
 
   table = {};
-  std::cout << "Wajih: Creating table: " << virtual_table_module->name().c_str() << std::endl;
   auto err = sqlite3_create_module_v2(d->sqlite_database,
                                       virtual_table_module->name().c_str(),
                                       virtual_table_module->sqliteModule(),
@@ -132,7 +130,6 @@ Status VirtualDatabase::query(QueryOutput &output,
 
   SqliteStatement sql_stmt;
 
-  std::cout << "Wajih: Executing query: " << query << std::endl;
 
   auto status = prepareSqliteStatement(sql_stmt, d->sqlite_database, query);
   if (!status.succeeded()) {

@@ -83,6 +83,10 @@ public:
 
     /// \brief Owner group id
     std::int64_t ogid{0};
+
+    /// \brief Owner group id
+    std::int64_t inode{0};
+
   };
 
   /// \brief A list of PATH records

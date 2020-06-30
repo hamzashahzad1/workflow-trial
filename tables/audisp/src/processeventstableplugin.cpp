@@ -3,6 +3,8 @@
 #include <chrono>
 #include <mutex>
 
+#include <iostream>
+
 namespace zeek {
 struct ProcessEventsTablePlugin::PrivateData final {
   PrivateData(IZeekConfiguration &configuration_, IZeekLogger &logger_)
@@ -66,10 +68,10 @@ ProcessEventsTablePlugin::schema() const {
     // Present in the AUDIT_PATH record(s)
     { "path", IVirtualTable::ColumnType::String },
     { "mode", IVirtualTable::ColumnType::String },
-    
+
     // Present in the AUDIT_CWD record
     { "cwd", IVirtualTable::ColumnType::String },
-    
+
     // Custom
     { "time", IVirtualTable::ColumnType::Integer }
   };
@@ -91,9 +93,10 @@ Status ProcessEventsTablePlugin::processEvents(
     const IAudispConsumer::AuditEventList &event_list) {
   RowList generated_row_list;
 
+  std::cout << "============================================----================" << d->row_list.size() << std::endl;
   for (const auto &audit_event : event_list) {
     Row row;
-
+    std::cout << "Generating process event started: " << d->row_list.size() << std::endl;
     auto status = generateRow(row, audit_event);
     if (!status.succeeded()) {
       return status;
@@ -110,7 +113,7 @@ Status ProcessEventsTablePlugin::processEvents(
     // clang-format off
     d->row_list.insert(
       d->row_list.end(),
-      std::make_move_iterator(generated_row_list.begin()), 
+      std::make_move_iterator(generated_row_list.begin()),
       std::make_move_iterator(generated_row_list.end())
     );
     // clang-format on
@@ -132,7 +135,7 @@ Status ProcessEventsTablePlugin::processEvents(
       // clang-format on
     }
   }
-
+  std::cout << "Generating process event ended: " << d->row_list.size()  << std::endl;
   return Status::success();
 }
 
@@ -147,6 +150,7 @@ Status ProcessEventsTablePlugin::generateRow(
     Row &row, const IAudispConsumer::AuditEvent &audit_event) {
   row = {};
 
+  std::cout << "Generating row started"  << std::endl;
   if (!audit_event.syscall_data.succeeded) {
     return Status::success();
   }
@@ -255,7 +259,7 @@ Status ProcessEventsTablePlugin::generateRow(
     row["mode"] = {null_value};
     row["cwd"] = {""};
   }
-
+  std::cout << "Generating row ended" << std::endl;
   return Status::success();
 }
 } // namespace zeek

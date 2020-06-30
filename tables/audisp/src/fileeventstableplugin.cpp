@@ -51,7 +51,6 @@ const FileEventsTablePlugin::Schema &FileEventsTablePlugin::schema() const {
     { "action", IVirtualTable::ColumnType::String },
     { "pid", IVirtualTable::ColumnType::Integer },
     { "path", IVirtualTable::ColumnType::String },
-    { "fd", IVirtualTable::ColumnType::String },
     { "file_path", IVirtualTable::ColumnType::String },
     { "inode", IVirtualTable::ColumnType::String },
     { "auid", IVirtualTable::ColumnType::Integer },
@@ -76,7 +75,6 @@ Status FileEventsTablePlugin::processEvents(
     const IAudispConsumer::AuditEventList &event_list) {
   RowList generated_row_list;
 
-  std::cout << "Wajih in file process events" << std::endl;
 
   for (const auto &audit_event : event_list) {
     Row row;
@@ -138,12 +136,12 @@ Status FileEventsTablePlugin::generateRow(
   switch (audit_event.syscall_data.type) {
   case IAudispConsumer::SyscallRecordData::Type::Open:
     action = "open";
-    std::cout << "Wajih found open syscall" << std::endl;
+    //std::cout << "Wajih: found open syscall" << std::endl;
     break;
 
   case IAudispConsumer::SyscallRecordData::Type::OpenAt:
     action = "openat";
-    std::cout << "Wajih found openat syscall" << std::endl;
+    //std::cout << "Wajih: found openat syscall" << std::endl;
     break;
 
   default:
@@ -152,25 +150,23 @@ Status FileEventsTablePlugin::generateRow(
   }
 
   if (!audit_event.cwd_data.has_value()) {
-      std::cout << "FAILUREEEEEEEEEE CWD" << std::endl;
       return Status::failure(
-          "Missing an AUDIT_CWD record from an execve(at) event");
+          "Missing an AUDIT_CWD record from a file event ");
     }
 
 
   if (!audit_event.path_data.has_value()) {
-    std::cout << "FAILUREEEEEEEEEE" << std::endl;
       return Status::failure(
-          "Missing an AUDIT_PATH record from an execve(at) event");
+          "Missing an AUDIT_PATH record from a file event");
     }
 
 
     const auto &path_record = audit_event.path_data.value();
     const auto &last_path_entry = path_record.front();
-    const auto &cwd_data = audit_event.cwd_data.value();
+    //const auto &cwd_data = audit_event.cwd_data.value();
 
-    std::cout << "file path " << last_path_entry.path << std::endl;
-    std::cout << "file path cwd " << audit_event.cwd_data.value() << std::endl;
+    // std::cout << "file path cwd " << audit_event.cwd_data.value() << std::endl;
+    // std::cout << "file path path " << last_path_entry.path << std::endl;
 
   const auto &syscall_data = audit_event.syscall_data;
 
@@ -179,7 +175,6 @@ Status FileEventsTablePlugin::generateRow(
   row["path"] = syscall_data.exe;
 
   // auto fd = std::strtoll(syscall_data.a0.c_str(), nullptr, 16U);
-  row["fd"] = "TODO";
 
   row["auid"] = syscall_data.auid;
 
@@ -191,10 +186,9 @@ Status FileEventsTablePlugin::generateRow(
 
   row["time"] = static_cast<std::int64_t>(current_timestamp.count());
 
-  row["file_path"] = "TODO";
-  row["inode"] = "TODO";
+  row["file_path"] = last_path_entry.path;
+  row["inode"] = last_path_entry.inode;
 
-  std::cout << "Done generating syscall" << std::endl;
   return Status::success();
 }
 } // namespace zeek

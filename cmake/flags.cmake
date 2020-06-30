@@ -8,6 +8,7 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_C_COMPILER_ID}" STREQUA
     -Wextra
     -Wpedantic
     -Wunused
+    -ggdb
   )
 
 else()

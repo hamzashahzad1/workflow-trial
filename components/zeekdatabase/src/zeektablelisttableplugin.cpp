@@ -66,9 +66,6 @@ void ZeekTableListTablePlugin::updateTableList(
 
   {
     std::lock_guard<std::mutex> lock(d->table_list_mutex);
-      for (const auto table_name : table_list) {
-	std::cout << "wajih : Zeek table update "  << table_name << std::endl;
-      }
     d->table_list = table_list;
   }
 }
