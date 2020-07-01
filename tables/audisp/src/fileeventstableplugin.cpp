@@ -3,7 +3,6 @@
 #include <chrono>
 #include <mutex>
 
-
 namespace zeek {
 struct FileEventsTablePlugin::PrivateData final {
   PrivateData(IZeekConfiguration &configuration_, IZeekLogger &logger_)
@@ -18,8 +17,8 @@ struct FileEventsTablePlugin::PrivateData final {
 };
 
 Status FileEventsTablePlugin::create(Ref &obj,
-                                       IZeekConfiguration &configuration,
-                                       IZeekLogger &logger) {
+                                     IZeekConfiguration &configuration,
+                                     IZeekLogger &logger) {
   obj.reset();
 
   try {
@@ -74,7 +73,6 @@ Status FileEventsTablePlugin::processEvents(
     const IAudispConsumer::AuditEventList &event_list) {
   RowList generated_row_list;
 
-
   for (const auto &audit_event : event_list) {
     Row row;
 
@@ -120,8 +118,8 @@ Status FileEventsTablePlugin::processEvents(
   return Status::success();
 }
 
-FileEventsTablePlugin::FileEventsTablePlugin(
-    IZeekConfiguration &configuration, IZeekLogger &logger)
+FileEventsTablePlugin::FileEventsTablePlugin(IZeekConfiguration &configuration,
+                                             IZeekLogger &logger)
     : d(new PrivateData(configuration, logger)) {
 
   d->max_queued_row_count = d->configuration.maxQueuedRowCount();
@@ -146,14 +144,12 @@ Status FileEventsTablePlugin::generateRow(
   }
 
   if (!audit_event.cwd_data.has_value()) {
-      return Status::failure(
-          "Missing an AUDIT_CWD record from a file event ");
-    }
+    return Status::failure("Missing an AUDIT_CWD record from a file event ");
+  }
 
   if (!audit_event.path_data.has_value()) {
-      return Status::failure(
-          "Missing an AUDIT_PATH record from a file event");
-    }
+    return Status::failure("Missing an AUDIT_PATH record from a file event");
+  }
 
   const auto &path_record = audit_event.path_data.value();
   const auto &last_path_entry = path_record.front();

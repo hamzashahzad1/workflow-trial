@@ -1,7 +1,7 @@
 #include "audispservice.h"
+#include "fileeventstableplugin.h"
 #include "processeventstableplugin.h"
 #include "socketeventstableplugin.h"
-#include "fileeventstableplugin.h"
 
 #include <algorithm>
 #include <cassert>
@@ -122,8 +122,8 @@ AudispService::AudispService(IVirtualDatabase &virtual_database,
     throw status;
   }
 
-  status = FileEventsTablePlugin::create(d->file_events_table,
-                                           configuration, logger);
+  status = FileEventsTablePlugin::create(d->file_events_table, configuration,
+                                         logger);
   if (!status.succeeded()) {
     throw status;
   }

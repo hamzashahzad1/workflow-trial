@@ -162,8 +162,8 @@ void AudispConsumer::auparseCallback(auparse_cb_event_t event_type) {
       status = parsePathRecord(path_data, d->auparse_interface);
 
       if (!is_execve_syscall) {
-	audit_event.path_data = std::move(path_data);
-	path_data = {};
+        audit_event.path_data = std::move(path_data);
+        path_data = {};
       }
 
       break;
