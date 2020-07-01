@@ -49,10 +49,16 @@ public:
 
       /// \brief Program path
       std::string path;
+        
+      /// \brief File path
+      std::string file_path;
+        
+      /// \brief FIle inode
+      std::string inode;
     };
 
     /// \brief Supported event types
-    enum class Type { Fork, Exec };
+    enum class Type { Fork, Exec, Create, Open };
 
     /// \brief Exec event data
     struct ExecEventData final {

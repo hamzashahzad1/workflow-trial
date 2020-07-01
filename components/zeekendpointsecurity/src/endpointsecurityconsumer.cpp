@@ -13,6 +13,8 @@
 #include <EndpointSecurity/EndpointSecurity.h>
 #include <bsm/libbsm.h>
 
+#include <iostream>
+
 namespace zeek {
 struct EndpointSecurityConsumer::PrivateData final {
   PrivateData(IZeekLogger &logger_, IZeekConfiguration &configuration_)
@@ -131,8 +133,13 @@ void EndpointSecurityConsumer::endpointSecurityCallback(
 
   } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_FORK) {
     status = processForkNotification(event, message_ptr);
+  } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_CREATE) {
+    std::cout << "Wajih: Received notify create" << std::endl;
+    //status = processCreateNotification(event, message_ptr);
+  } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_OPEN) {
+    std::cout << "Wajih: Received notify open" << std::endl;
+    //status = processOpenNotification(event, message_ptr);
   }
-
   if (!status.succeeded()) {
     d->logger.logMessage(IZeekLogger::Severity::Error, status.message());
 
@@ -150,14 +157,24 @@ EndpointSecurityConsumer::initializeEventHeader(Event::Header &event_header,
 
   const auto &message = *static_cast<const es_message_t *>(message_ptr);
 
-  std::optional<std::reference_wrapper<es_process_t>> process_ref;
+  
+    std::optional<std::reference_wrapper<es_process_t>> process_ref = std::ref(*message.process);
+    std::optional<std::reference_wrapper<es_process_t>> child_process_ref;
+
+  std::optional<std::reference_wrapper<es_file_t>> file_ref;
+
   if (message.event_type == ES_EVENT_TYPE_NOTIFY_EXEC) {
-    process_ref = std::ref(*message.event.exec.target);
+    child_process_ref = std::ref(*message.event.exec.target);
 
   } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_FORK) {
-    process_ref = std::ref(*message.event.fork.child);
+    child_process_ref = std::ref(*message.event.fork.child);
 
-  } else {
+  }else if (message.event_type == ES_EVENT_TYPE_NOTIFY_OPEN) {
+    file_ref = std::ref(*message.event.open.file);
+  }
+  else if (message.event_type == ES_EVENT_TYPE_NOTIFY_CREATE) {
+    file_ref = std::ref(*message.event.open.file);
+  }  else {
     return Status::failure("Unrecognized event type");
   }
 
@@ -188,6 +205,7 @@ EndpointSecurityConsumer::initializeEventHeader(Event::Header &event_header,
 
   return Status::success();
 }
+
 
 Status
 EndpointSecurityConsumer::processExecNotification(Event &event,
