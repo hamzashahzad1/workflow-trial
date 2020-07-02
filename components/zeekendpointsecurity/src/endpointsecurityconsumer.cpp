@@ -133,11 +133,8 @@ void EndpointSecurityConsumer::endpointSecurityCallback(
 
   } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_FORK) {
     status = processForkNotification(event, message_ptr);
-  } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_CREATE) {
-    std::cout << "Wajih: Received notify create" << std::endl;
-    //status = processCreateNotification(event, message_ptr);
   } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_OPEN) {
-    std::cout << "Wajih: Received notify open" << std::endl;
+    //std::cout << "Wajih: Received notify open" << std::endl;
     //status = processOpenNotification(event, message_ptr);
   }
   if (!status.succeeded()) {
@@ -161,22 +158,28 @@ EndpointSecurityConsumer::initializeEventHeader(Event::Header &event_header,
     std::optional<std::reference_wrapper<es_process_t>> process_ref = std::ref(*message.process);
     std::optional<std::reference_wrapper<es_process_t>> child_process_ref;
 
-  std::optional<std::reference_wrapper<es_file_t>> file_ref;
+  //std::optional<std::reference_wrapper<es_file_t>> file_ref;
 
   if (message.event_type == ES_EVENT_TYPE_NOTIFY_EXEC) {
     child_process_ref = std::ref(*message.event.exec.target);
-
+    auto &child_process = child_process_ref.value().get();
+  event_header.child_process_id = child_process.original_ppid;
+            //event_header.file_path = "";
   } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_FORK) {
     child_process_ref = std::ref(*message.event.fork.child);
+    auto &child_process = child_process_ref.value().get();
+  event_header.child_process_id = child_process.original_ppid;
+      //event_header.file_path = "";
 
   }else if (message.event_type == ES_EVENT_TYPE_NOTIFY_OPEN) {
-    file_ref = std::ref(*message.event.open.file);
-  }
-  else if (message.event_type == ES_EVENT_TYPE_NOTIFY_CREATE) {
-    file_ref = std::ref(*message.event.open.file);
-  }  else {
+    //file_ref = std::ref(*message.event.open.file);
+    //auto &file = file_ref.value().get();
+      //event_header.file_path.assign(file.path.data, file.path.length);
+      //event_header.child_process_id = -1;
+  }else {
     return Status::failure("Unrecognized event type");
   }
+    
 
   auto &process = process_ref.value().get();
   event_header.timestamp = std::time(nullptr);
@@ -255,6 +258,24 @@ EndpointSecurityConsumer::processForkNotification(Event &event,
   event = std::move(new_event);
   return Status::success();
 }
+
+Status
+EndpointSecurityConsumer::processOpenNotification(Event &event,
+                                                  const void *message_ptr) {
+  event = {};
+
+  Event new_event;
+  new_event.type = Event::Type::Open;
+
+  auto status = initializeEventHeader(new_event.header, message_ptr);
+  if (!status.succeeded()) {
+    return status;
+  }
+
+  event = std::move(new_event);
+  return Status::success();
+}
+
 
 Status IEndpointSecurityConsumer::create(Ref &obj, IZeekLogger &logger,
                                          IZeekConfiguration &configuration) {

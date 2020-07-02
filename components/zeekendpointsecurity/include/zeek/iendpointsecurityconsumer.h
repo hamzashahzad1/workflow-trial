@@ -29,6 +29,8 @@ public:
       /// \brief Process id
       pid_t process_id{};
 
+      /// \brief Process id
+      pid_t child_process_id{};
       /// \brief User id
       uid_t user_id{};
 
@@ -52,13 +54,11 @@ public:
         
       /// \brief File path
       std::string file_path;
-        
-      /// \brief FIle inode
-      std::string inode;
+
     };
 
     /// \brief Supported event types
-    enum class Type { Fork, Exec, Create, Open };
+    enum class Type { Fork, Exec, Open };
 
     /// \brief Exec event data
     struct ExecEventData final {
