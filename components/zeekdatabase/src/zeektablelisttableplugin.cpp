@@ -3,6 +3,8 @@
 #include <chrono>
 #include <mutex>
 
+#include <iostream>
+
 namespace zeek {
 struct ZeekTableListTablePlugin::PrivateData final {
   std::mutex table_list_mutex;

@@ -3,6 +3,8 @@
 #include <chrono>
 #include <mutex>
 
+#include <iostream>
+
 namespace zeek {
 struct FileEventsTablePlugin::PrivateData final {
   PrivateData(IZeekConfiguration &configuration_, IZeekLogger &logger_)
@@ -52,8 +54,8 @@ FileEventsTablePlugin::schema() const {
     { "process_id", IVirtualTable::ColumnType::Integer },
     { "user_id", IVirtualTable::ColumnType::Integer },
     { "group_id", IVirtualTable::ColumnType::Integer },
-    { "path", IVirtualTable::ColumnType::Integer },
-    { "file_path", IVirtualTable::ColumnType::Integer }
+    { "path", IVirtualTable::ColumnType::String },
+    { "file_path", IVirtualTable::ColumnType::String }
   };
   // clang-format on
 
@@ -130,6 +132,16 @@ Status FileEventsTablePlugin::generateRow(
 
   row = {};
 
+  std::string action;
+
+  switch (event.type) {
+  case IEndpointSecurityConsumer::Event::Type::Open:
+    action = "open";
+    break;
+
+  default:
+    return Status::success();
+  }
   const auto &header = event.header;
   row["timestamp"] = static_cast<std::int64_t>(header.timestamp);
   row["process_id"] = static_cast<std::int64_t>(header.process_id);
@@ -137,12 +149,9 @@ Status FileEventsTablePlugin::generateRow(
   row["group_id"] = static_cast<std::int64_t>(header.group_id);
   row["path"] = header.path;
   row["file_path"] = header.file_path;
-
-  if (event.type == IEndpointSecurityConsumer::Event::Type::Open) {
-    row["type"] = "open";
-
-  }
-
+  row["type"] = action;
+    
+    //std::cout << "Row data: " << header.process_id << ", " << header.path << ", " << header.file_path << ", " << header.timestamp << std::endl;
   return Status::success();
 }
 } // namespace zeek

@@ -110,8 +110,7 @@ EndpointSecurityConsumer::EndpointSecurityConsumer(
   }
   // clang-format on
 
-  std::array<es_event_type_t, 2> event_list = {ES_EVENT_TYPE_NOTIFY_EXEC,
-                                               ES_EVENT_TYPE_NOTIFY_FORK};
+  std::array<es_event_type_t, 3> event_list = {ES_EVENT_TYPE_NOTIFY_EXEC,ES_EVENT_TYPE_NOTIFY_FORK, ES_EVENT_TYPE_NOTIFY_OPEN};
 
   if (es_subscribe(d->es_client, event_list.data(), event_list.size()) !=
       ES_RETURN_SUCCESS) {
@@ -135,7 +134,7 @@ void EndpointSecurityConsumer::endpointSecurityCallback(
     status = processForkNotification(event, message_ptr);
   } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_OPEN) {
     //std::cout << "Wajih: Received notify open" << std::endl;
-    //status = processOpenNotification(event, message_ptr);
+    status = processOpenNotification(event, message_ptr);
   }
   if (!status.succeeded()) {
     d->logger.logMessage(IZeekLogger::Severity::Error, status.message());
@@ -154,27 +153,22 @@ EndpointSecurityConsumer::initializeEventHeader(Event::Header &event_header,
 
   const auto &message = *static_cast<const es_message_t *>(message_ptr);
 
-  
-    std::optional<std::reference_wrapper<es_process_t>> process_ref = std::ref(*message.process);
-    std::optional<std::reference_wrapper<es_process_t>> child_process_ref;
+    std::optional<std::reference_wrapper<es_process_t>> process_ref;
 
-  //std::optional<std::reference_wrapper<es_file_t>> file_ref;
+  std::optional<std::reference_wrapper<es_file_t>> file_ref;
 
   if (message.event_type == ES_EVENT_TYPE_NOTIFY_EXEC) {
-    child_process_ref = std::ref(*message.event.exec.target);
-    auto &child_process = child_process_ref.value().get();
-  event_header.child_process_id = child_process.original_ppid;
+      process_ref = std::ref(*message.event.exec.target);
             //event_header.file_path = "";
   } else if (message.event_type == ES_EVENT_TYPE_NOTIFY_FORK) {
-    child_process_ref = std::ref(*message.event.fork.child);
-    auto &child_process = child_process_ref.value().get();
-  event_header.child_process_id = child_process.original_ppid;
+    process_ref = std::ref(*message.event.fork.child);
       //event_header.file_path = "";
 
   }else if (message.event_type == ES_EVENT_TYPE_NOTIFY_OPEN) {
-    //file_ref = std::ref(*message.event.open.file);
-    //auto &file = file_ref.value().get();
-      //event_header.file_path.assign(file.path.data, file.path.length);
+      process_ref = std::ref(*message.process);
+    file_ref = std::ref(*message.event.open.file);
+    auto &file = file_ref.value().get();
+    event_header.file_path.assign(file.path.data, file.path.length);
       //event_header.child_process_id = -1;
   }else {
     return Status::failure("Unrecognized event type");
@@ -268,12 +262,19 @@ EndpointSecurityConsumer::processOpenNotification(Event &event,
   new_event.type = Event::Type::Open;
 
   auto status = initializeEventHeader(new_event.header, message_ptr);
-  if (!status.succeeded()) {
-    return status;
-  }
+    if (!status.succeeded()) {
+      return status;
+    }
 
-  event = std::move(new_event);
-  return Status::success();
+    if (new_event.header.file_path.rfind("/System/Library/", 0) == 0)
+        return Status::success();
+    if (new_event.header.file_path.rfind("/Applications/", 0) == 0)
+        return Status::success();
+    if (new_event.header.file_path.rfind("/usr/sbin/", 0) == 0)
+        return Status::success();
+    
+    event = std::move(new_event);
+    return Status::success();
 }
 
 

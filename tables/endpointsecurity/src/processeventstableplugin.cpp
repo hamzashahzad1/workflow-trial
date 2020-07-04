@@ -55,11 +55,11 @@ ProcessEventsTablePlugin::schema() const {
     { "user_id", IVirtualTable::ColumnType::Integer },
     { "group_id", IVirtualTable::ColumnType::Integer },
     { "platform_binary", IVirtualTable::ColumnType::Integer },
-    { "signing_id", IVirtualTable::ColumnType::Integer },
-    { "team_id", IVirtualTable::ColumnType::Integer },
-    { "cdhash", IVirtualTable::ColumnType::Integer },
-    { "path", IVirtualTable::ColumnType::Integer },
-    { "cmdline", IVirtualTable::ColumnType::Integer }
+    { "signing_id", IVirtualTable::ColumnType::String },
+    { "team_id", IVirtualTable::ColumnType::String },
+    { "cdhash", IVirtualTable::ColumnType::String },
+    { "path", IVirtualTable::ColumnType::String },
+    { "cmdline", IVirtualTable::ColumnType::String }
   };
   // clang-format on
 
@@ -98,7 +98,7 @@ Status ProcessEventsTablePlugin::processEvents(
     // clang-format off
     d->row_list.insert(
       d->row_list.end(),
-      std::make_move_iterator(generated_row_list.begin()), 
+      std::make_move_iterator(generated_row_list.begin()),
       std::make_move_iterator(generated_row_list.end())
     );
     // clang-format on
@@ -136,6 +136,21 @@ Status ProcessEventsTablePlugin::generateRow(
 
   row = {};
 
+  std::string action;
+
+switch (event.type) {
+  case IEndpointSecurityConsumer::Event::Type::Exec:
+    action = "exec";
+    break;
+
+  case IEndpointSecurityConsumer::Event::Type::Fork:
+    action = "fork";
+    break;
+
+  default:
+    return Status::success();
+  }
+
   const auto &header = event.header;
   row["timestamp"] = static_cast<std::int64_t>(header.timestamp);
 
@@ -155,7 +170,7 @@ Status ProcessEventsTablePlugin::generateRow(
   row["path"] = header.path;
 
   if (event.type == IEndpointSecurityConsumer::Event::Type::Exec) {
-    row["type"] = "exec";
+    row["type"] = action;
 
     if (event.opt_exec_event_data.has_value()) {
       const auto &exec_event_data = event.opt_exec_event_data.value();
@@ -172,7 +187,7 @@ Status ProcessEventsTablePlugin::generateRow(
     }
 
   } else if (event.type == IEndpointSecurityConsumer::Event::Type::Fork) {
-    row["type"] = "fork";
+    row["type"] = action;
 
     if (event.opt_exec_event_data.has_value()) {
       return Status::failure("Invalid event data");

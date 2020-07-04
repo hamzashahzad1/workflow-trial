@@ -8,6 +8,8 @@
 
 #include <sqlite3.h>
 
+#include <iostream>
+
 namespace zeek {
 struct VirtualDatabase::PrivateData final {
   sqlite3 *sqlite_database{nullptr};
@@ -128,6 +130,8 @@ Status VirtualDatabase::query(QueryOutput &output,
   output = {};
 
   SqliteStatement sql_stmt;
+    
+     
   auto status = prepareSqliteStatement(sql_stmt, d->sqlite_database, query);
   if (!status.succeeded()) {
     return status;
@@ -155,13 +159,11 @@ Status VirtualDatabase::query(QueryOutput &output,
       case SQLITE_INTEGER:
         column.data = static_cast<std::int64_t>(
             sqlite3_column_int(sql_stmt.get(), column_index));
-
         break;
 
       case SQLITE_TEXT: {
         auto string_data = reinterpret_cast<const char *>(
             sqlite3_column_text(sql_stmt.get(), column_index));
-
         column.data = std::string(string_data);
         break;
       }
@@ -176,8 +178,8 @@ Status VirtualDatabase::query(QueryOutput &output,
     }
 
     temp_output.push_back(std::move(current_row));
-  }
 
+  }
   output = std::move(temp_output);
   return Status::success();
 }

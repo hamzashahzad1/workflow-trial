@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 namespace zeek {
-/// \brief Audisp socket consumer (interface)
+/// \brief EndpointSecurity consumer (interface)
 class IEndpointSecurityConsumer {
 public:
   /// \brief Event data
@@ -29,8 +29,6 @@ public:
       /// \brief Process id
       pid_t process_id{};
 
-      /// \brief Process id
-      pid_t child_process_id{};
       /// \brief User id
       uid_t user_id{};
 

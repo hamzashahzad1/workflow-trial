@@ -188,6 +188,7 @@ int VirtualTableModule::onTableOpen(sqlite3_vtab *table_instance,
 
     for (const auto &row : cursor_impl.session->row_list) {
       if (row.size() != instance.column_count) {
+
         std::cerr << "Invalid column count returned by table implementation\n";
         return SQLITE_ERROR;
       }
