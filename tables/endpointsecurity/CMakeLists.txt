@@ -8,6 +8,9 @@ function(zeekAgentTablesEndpointSecurity)
     src/processeventstableplugin.h
     src/processeventstableplugin.cpp
 
+    src/fileeventstableplugin.h
+    src/fileeventstableplugin.cpp
+
     src/endpointsecurityservice.h
     src/endpointsecurityservice.cpp
   )
