@@ -51,6 +51,7 @@ FileEventsTablePlugin::schema() const {
   static const Schema kTableSchema = {
     { "timestamp", IVirtualTable::ColumnType::Integer },
     { "type", IVirtualTable::ColumnType::String },
+    { "parent_process_id", IVirtualTable::ColumnType::Integer },
     { "process_id", IVirtualTable::ColumnType::Integer },
     { "user_id", IVirtualTable::ColumnType::Integer },
     { "group_id", IVirtualTable::ColumnType::Integer },
@@ -144,6 +145,8 @@ Status FileEventsTablePlugin::generateRow(
   }
   const auto &header = event.header;
   row["timestamp"] = static_cast<std::int64_t>(header.timestamp);
+  row["parent_process_id"] =
+        static_cast<std::int64_t>(header.parent_process_id);
   row["process_id"] = static_cast<std::int64_t>(header.process_id);
   row["user_id"] = static_cast<std::int64_t>(header.user_id);
   row["group_id"] = static_cast<std::int64_t>(header.group_id);
@@ -151,7 +154,6 @@ Status FileEventsTablePlugin::generateRow(
   row["file_path"] = header.file_path;
   row["type"] = action;
     
-    //std::cout << "Row data: " << header.process_id << ", " << header.path << ", " << header.file_path << ", " << header.timestamp << std::endl;
   return Status::success();
 }
 } // namespace zeek
