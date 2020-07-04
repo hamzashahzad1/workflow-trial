@@ -266,13 +266,6 @@ EndpointSecurityConsumer::processOpenNotification(Event &event,
     return status;
   }
 
-  if (new_event.header.file_path.rfind("/System/Library/", 0) == 0)
-    return Status::success();
-  if (new_event.header.file_path.rfind("/Applications/", 0) == 0)
-    return Status::success();
-  if (new_event.header.file_path.rfind("/usr/sbin/", 0) == 0)
-    return Status::success();
-
   event = std::move(new_event);
   return Status::success();
 }
