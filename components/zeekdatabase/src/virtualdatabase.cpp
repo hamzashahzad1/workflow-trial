@@ -130,8 +130,7 @@ Status VirtualDatabase::query(QueryOutput &output,
   output = {};
 
   SqliteStatement sql_stmt;
-    
-     
+
   auto status = prepareSqliteStatement(sql_stmt, d->sqlite_database, query);
   if (!status.succeeded()) {
     return status;
@@ -178,7 +177,6 @@ Status VirtualDatabase::query(QueryOutput &output,
     }
 
     temp_output.push_back(std::move(current_row));
-
   }
   output = std::move(temp_output);
   return Status::success();

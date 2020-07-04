@@ -44,8 +44,7 @@ protected:
   /// \brief Constructor
   /// \param configuration An initialized configuration object
   /// \param logger An initialized logger object
-  FileEventsTablePlugin(IZeekConfiguration &configuration,
-                           IZeekLogger &logger);
+  FileEventsTablePlugin(IZeekConfiguration &configuration, IZeekLogger &logger);
 
 public:
   /// \brief Generates a single row from the given EndpointSecurity event

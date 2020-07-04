@@ -49,10 +49,9 @@ public:
 
       /// \brief Program path
       std::string path;
-        
+
       /// \brief File path
       std::string file_path;
-
     };
 
     /// \brief Supported event types

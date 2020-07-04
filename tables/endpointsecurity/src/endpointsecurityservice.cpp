@@ -1,6 +1,6 @@
 #include "endpointsecurityservice.h"
-#include "processeventstableplugin.h"
 #include "fileeventstableplugin.h"
+#include "processeventstableplugin.h"
 
 #include <algorithm>
 #include <cassert>
@@ -38,16 +38,13 @@ EndpointSecurityService::~EndpointSecurityService() {
 
   auto status =
       d->virtual_database.unregisterTable(d->process_events_table->name());
-assert(status.succeeded() && "Failed to unregister the process_events table");
-    
-if (!d->file_events_table) {
-      return;
-    }
-    status =
-        d->virtual_database.unregisterTable(d->file_events_table->name());
+  assert(status.succeeded() && "Failed to unregister the process_events table");
+
+  if (!d->file_events_table) {
+    return;
+  }
+  status = d->virtual_database.unregisterTable(d->file_events_table->name());
   assert(status.succeeded() && "Failed to unregister the file_events table");
-
-
 }
 
 const std::string &EndpointSecurityService::name() const {
@@ -61,18 +58,18 @@ Status EndpointSecurityService::exec(std::atomic_bool &terminate) {
       continue;
     }
 
-      if (!d->file_events_table) {
-         std::this_thread::sleep_for(std::chrono::seconds(1U));
-         continue;
-       }
+    if (!d->file_events_table) {
+      std::this_thread::sleep_for(std::chrono::seconds(1U));
+      continue;
+    }
     auto &process_events_table_impl =
         *static_cast<ProcessEventsTablePlugin *>(d->process_events_table.get());
 
-   auto &file_events_table_impl =
+    auto &file_events_table_impl =
         *static_cast<FileEventsTablePlugin *>(d->file_events_table.get());
-      
-      IEndpointSecurityConsumer::EventList event_list;
-      
+
+    IEndpointSecurityConsumer::EventList event_list;
+
     d->endpoint_sec_consumer->getEvents(event_list);
 
     if (event_list.empty()) {
@@ -86,7 +83,7 @@ Status EndpointSecurityService::exec(std::atomic_bool &terminate) {
           "The process_events table failed to process some events: " +
               status.message());
     }
-      
+
     status = file_events_table_impl.processEvents(event_list);
     if (!status.succeeded()) {
       d->logger.logMessage(
@@ -108,10 +105,11 @@ EndpointSecurityService::EndpointSecurityService(
                                                   logger, configuration);
 
   if (!status.succeeded()) {
-    d->logger.logMessage(IZeekLogger::Severity::Error,
-                         "Failed to connect to the EndpointSecurity API. The "
-                         "process_events and file_events tables will not be enabled. Error: " +
-                             status.message());
+    d->logger.logMessage(
+        IZeekLogger::Severity::Error,
+        "Failed to connect to the EndpointSecurity API. The "
+        "process_events and file_events tables will not be enabled. Error: " +
+            status.message());
 
     return;
   }
@@ -121,26 +119,22 @@ EndpointSecurityService::EndpointSecurityService(
   if (!status.succeeded()) {
     throw status;
   }
-        
 
-
-        
   status = d->virtual_database.registerTable(d->process_events_table);
   if (!status.succeeded()) {
     throw status;
   }
-    
-status = FileEventsTablePlugin::create(d->file_events_table,
-                                                  configuration, logger);
-        if (!status.succeeded()) {
-          throw status;
-        }
-        
-status = d->virtual_database.registerTable(d->file_events_table);
-        if (!status.succeeded()) {
-          throw status;
-        }
 
+  status = FileEventsTablePlugin::create(d->file_events_table, configuration,
+                                         logger);
+  if (!status.succeeded()) {
+    throw status;
+  }
+
+  status = d->virtual_database.registerTable(d->file_events_table);
+  if (!status.succeeded()) {
+    throw status;
+  }
 }
 
 struct EndpointSecurityServiceFactory::PrivateData final {

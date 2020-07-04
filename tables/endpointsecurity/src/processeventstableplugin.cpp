@@ -138,7 +138,7 @@ Status ProcessEventsTablePlugin::generateRow(
 
   std::string action;
 
-switch (event.type) {
+  switch (event.type) {
   case IEndpointSecurityConsumer::Event::Type::Exec:
     action = "exec";
     break;

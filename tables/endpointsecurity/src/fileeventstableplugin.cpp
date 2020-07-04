@@ -19,8 +19,8 @@ struct FileEventsTablePlugin::PrivateData final {
 };
 
 Status FileEventsTablePlugin::create(Ref &obj,
-                                        IZeekConfiguration &configuration,
-                                        IZeekLogger &logger) {
+                                     IZeekConfiguration &configuration,
+                                     IZeekLogger &logger) {
   obj.reset();
 
   try {
@@ -45,8 +45,7 @@ const std::string &FileEventsTablePlugin::name() const {
   return kTableName;
 }
 
-const FileEventsTablePlugin::Schema &
-FileEventsTablePlugin::schema() const {
+const FileEventsTablePlugin::Schema &FileEventsTablePlugin::schema() const {
   // clang-format off
   static const Schema kTableSchema = {
     { "timestamp", IVirtualTable::ColumnType::Integer },
@@ -121,8 +120,8 @@ Status FileEventsTablePlugin::processEvents(
   return Status::success();
 }
 
-FileEventsTablePlugin::FileEventsTablePlugin(
-    IZeekConfiguration &configuration, IZeekLogger &logger)
+FileEventsTablePlugin::FileEventsTablePlugin(IZeekConfiguration &configuration,
+                                             IZeekLogger &logger)
     : d(new PrivateData(configuration, logger)) {
 
   d->max_queued_row_count = d->configuration.maxQueuedRowCount();
@@ -146,14 +145,14 @@ Status FileEventsTablePlugin::generateRow(
   const auto &header = event.header;
   row["timestamp"] = static_cast<std::int64_t>(header.timestamp);
   row["parent_process_id"] =
-        static_cast<std::int64_t>(header.parent_process_id);
+      static_cast<std::int64_t>(header.parent_process_id);
   row["process_id"] = static_cast<std::int64_t>(header.process_id);
   row["user_id"] = static_cast<std::int64_t>(header.user_id);
   row["group_id"] = static_cast<std::int64_t>(header.group_id);
   row["path"] = header.path;
   row["file_path"] = header.file_path;
   row["type"] = action;
-    
+
   return Status::success();
 }
 } // namespace zeek
