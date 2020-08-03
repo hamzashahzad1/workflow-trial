@@ -145,7 +145,7 @@ Status FileEventsTablePlugin::generateRow(
   case IEndpointSecurityConsumer::Event::Type::Create:
     action = "create";
     break;
-          
+
   default:
     return Status::success();
   }
@@ -158,7 +158,7 @@ Status FileEventsTablePlugin::generateRow(
   row["process_id"] = static_cast<std::int64_t>(header.process_id);
   row["user_id"] = static_cast<std::int64_t>(header.user_id);
   row["group_id"] = static_cast<std::int64_t>(header.group_id);
-  row["platform_binary"] =  static_cast<std::int64_t>(header.platform_binary);
+  row["platform_binary"] = static_cast<std::int64_t>(header.platform_binary);
   row["signing_id"] = header.signing_id;
   row["team_id"] = header.team_id;
   row["cdhash"] = header.cdhash;

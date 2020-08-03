@@ -55,13 +55,12 @@ public:
   /// \param message_ptr a valid pointer to an EndpointSecurity es_message_t
   /// \return A Status object
   static Status processOpenNotification(Event &event, const void *message_ptr);
-    
-    /// \brief File create event handler
-    /// \param event the generated event object
-    /// \param message_ptr a valid pointer to an EndpointSecurity es_message_t
-    /// \return A Status object
-    static Status processCreateNotification(Event &event, const void *message_ptr);
-    
 
+  /// \brief File create event handler
+  /// \param event the generated event object
+  /// \param message_ptr a valid pointer to an EndpointSecurity es_message_t
+  /// \return A Status object
+  static Status processCreateNotification(Event &event,
+                                          const void *message_ptr);
 };
 } // namespace zeek

@@ -69,7 +69,8 @@ void validateRow(const IVirtualTable::Row &row,
 
   REQUIRE(std::get<std::string>(row.at("path").value()) == event.header.path);
 
-  REQUIRE(std::get<std::string>(row.at("file_path").value()) == event.header.file_path);
+  REQUIRE(std::get<std::string>(row.at("file_path").value()) ==
+          event.header.file_path);
 
   auto valid_event =
       event.type == IEndpointSecurityConsumer::Event::Type::Open ||
@@ -86,8 +87,7 @@ void validateRow(const IVirtualTable::Row &row,
 }
 } // namespace
 
-SCENARIO("Row generation in the file_events table",
-         "[FileEventsTablePlugin]") {
+SCENARIO("Row generation in the file_events table", "[FileEventsTablePlugin]") {
 
   GIVEN("a valid open EndpointSecurity event") {
     auto event = generateEvent(IEndpointSecurityConsumer::Event::Type::Open);
