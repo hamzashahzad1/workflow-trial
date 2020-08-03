@@ -39,6 +39,7 @@ function(zeekAgentTablesEndpointSecurity)
     SOURCES
       tests/main.cpp
       tests/processeventstableplugin.cpp
+      tests/fileeventstableplugin.cpp
   )
 endfunction()
 

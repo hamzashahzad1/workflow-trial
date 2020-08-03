@@ -3,7 +3,6 @@
 #include <chrono>
 #include <mutex>
 
-#include <iostream>
 
 namespace zeek {
 struct FileEventsTablePlugin::PrivateData final {
@@ -51,9 +50,14 @@ const FileEventsTablePlugin::Schema &FileEventsTablePlugin::schema() const {
     { "timestamp", IVirtualTable::ColumnType::Integer },
     { "type", IVirtualTable::ColumnType::String },
     { "parent_process_id", IVirtualTable::ColumnType::Integer },
+    { "orig_parent_process_id", IVirtualTable::ColumnType::Integer },
     { "process_id", IVirtualTable::ColumnType::Integer },
     { "user_id", IVirtualTable::ColumnType::Integer },
     { "group_id", IVirtualTable::ColumnType::Integer },
+    { "platform_binary", IVirtualTable::ColumnType::Integer },
+    { "signing_id", IVirtualTable::ColumnType::String },
+    { "team_id", IVirtualTable::ColumnType::String },
+    { "cdhash", IVirtualTable::ColumnType::String },
     { "path", IVirtualTable::ColumnType::String },
     { "file_path", IVirtualTable::ColumnType::String }
   };
@@ -138,7 +142,10 @@ Status FileEventsTablePlugin::generateRow(
   case IEndpointSecurityConsumer::Event::Type::Open:
     action = "open";
     break;
-
+  case IEndpointSecurityConsumer::Event::Type::Create:
+    action = "create";
+    break;
+          
   default:
     return Status::success();
   }
@@ -146,9 +153,15 @@ Status FileEventsTablePlugin::generateRow(
   row["timestamp"] = static_cast<std::int64_t>(header.timestamp);
   row["parent_process_id"] =
       static_cast<std::int64_t>(header.parent_process_id);
+  row["orig_parent_process_id"] =
+      static_cast<std::int64_t>(header.orig_parent_process_id);
   row["process_id"] = static_cast<std::int64_t>(header.process_id);
   row["user_id"] = static_cast<std::int64_t>(header.user_id);
   row["group_id"] = static_cast<std::int64_t>(header.group_id);
+  row["platform_binary"] =  static_cast<std::int64_t>(header.platform_binary);
+  row["signing_id"] = header.signing_id;
+  row["team_id"] = header.team_id;
+  row["cdhash"] = header.cdhash;
   row["path"] = header.path;
   row["file_path"] = header.file_path;
   row["type"] = action;

@@ -55,7 +55,7 @@ public:
     };
 
     /// \brief Supported event types
-    enum class Type { Fork, Exec, Open };
+    enum class Type { Fork, Exec, Open, Create};
 
     /// \brief Exec event data
     struct ExecEventData final {
