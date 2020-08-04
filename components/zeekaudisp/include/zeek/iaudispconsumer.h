@@ -22,7 +22,8 @@ public:
       Bind,
       Connect,
       Open,
-      OpenAt
+      OpenAt,
+      Create
     };
 
     /// \brief Event type
