@@ -139,6 +139,10 @@ Status FileEventsTablePlugin::generateRow(
     action = "openat";
     break;
 
+  case IAudispConsumer::SyscallRecordData::Type::Create:
+    action = "create";
+    break;
+
   default:
     return Status::success();
   }

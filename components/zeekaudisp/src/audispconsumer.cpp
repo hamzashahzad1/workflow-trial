@@ -142,7 +142,6 @@ void AudispConsumer::auparseCallback(auparse_cb_event_t event_type) {
 
   while (d->auparse_interface->nextRecord() > 0) {
     record_type = d->auparse_interface->getType();
-    Status status;
 
     switch (record_type) {
     case AUDIT_EXECVE:
