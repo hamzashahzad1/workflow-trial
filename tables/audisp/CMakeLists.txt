@@ -47,6 +47,7 @@ function(zeekAgentTablesAudisp)
 
       tests/processeventstableplugin.cpp
       tests/socketeventstableplugin.cpp
+      tests/fileeventstableplugin.cpp
   )
 endfunction()
 

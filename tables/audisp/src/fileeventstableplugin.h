@@ -46,6 +46,12 @@ protected:
   /// \param logger An initialized logger object
   FileEventsTablePlugin(IZeekConfiguration &configuration, IZeekLogger &logger);
 
+  /// \brief Combines working directory with file path
+  /// \param cwd current directory path
+  /// \param path file path
+  static std::string CombinePaths(const std::string &cwd,
+                                  const std::string &path);
+
 public:
   /// \brief Generates a single row from the given Audit event
   /// \param audit_event a single Audit event

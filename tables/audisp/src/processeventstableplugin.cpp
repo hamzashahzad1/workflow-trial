@@ -174,8 +174,11 @@ Status ProcessEventsTablePlugin::generateRow(
   case IAudispConsumer::SyscallRecordData::Type::Clone:
     syscall_name = "clone";
     break;
-
-  default:
+  case IAudispConsumer::SyscallRecordData::Type::Bind:
+  case IAudispConsumer::SyscallRecordData::Type::Connect:
+  case IAudispConsumer::SyscallRecordData::Type::Open:
+  case IAudispConsumer::SyscallRecordData::Type::OpenAt:
+  case IAudispConsumer::SyscallRecordData::Type::Create:
     return Status::success();
   }
 

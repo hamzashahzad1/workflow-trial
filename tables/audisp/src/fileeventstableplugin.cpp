@@ -1,6 +1,7 @@
 #include "fileeventstableplugin.h"
 
 #include <chrono>
+#include <filesystem>
 #include <mutex>
 
 namespace zeek {
@@ -19,8 +20,6 @@ struct FileEventsTablePlugin::PrivateData final {
 Status FileEventsTablePlugin::create(Ref &obj,
                                      IZeekConfiguration &configuration,
                                      IZeekLogger &logger) {
-  obj.reset();
-
   try {
     auto ptr = new FileEventsTablePlugin(configuration, logger);
     obj.reset(ptr);
@@ -44,18 +43,19 @@ const std::string &FileEventsTablePlugin::name() const {
 }
 
 const FileEventsTablePlugin::Schema &FileEventsTablePlugin::schema() const {
-  // clang-format off
   static const Schema kTableSchema = {
-    { "action", IVirtualTable::ColumnType::String },
-    { "pid", IVirtualTable::ColumnType::Integer },
-    { "path", IVirtualTable::ColumnType::String },
-    { "file_path", IVirtualTable::ColumnType::String },
-    { "inode", IVirtualTable::ColumnType::String },
-    { "auid", IVirtualTable::ColumnType::Integer },
-    { "success", IVirtualTable::ColumnType::Integer },
-    { "time", IVirtualTable::ColumnType::Integer }
-  };
-  // clang-format on
+      {"action", IVirtualTable::ColumnType::String},
+      {"pid", IVirtualTable::ColumnType::Integer},
+      {"ppid", IVirtualTable::ColumnType::Integer},
+      {"uid", IVirtualTable::ColumnType::Integer},
+      {"gid", IVirtualTable::ColumnType::Integer},
+      {"auid", IVirtualTable::ColumnType::Integer},
+      {"euid", IVirtualTable::ColumnType::Integer},
+      {"egid", IVirtualTable::ColumnType::Integer},
+      {"path", IVirtualTable::ColumnType::String},
+      {"file_path", IVirtualTable::ColumnType::String},
+      {"inode", IVirtualTable::ColumnType::String},
+      {"time", IVirtualTable::ColumnType::Integer}};
 
   return kTableSchema;
 }
@@ -82,36 +82,27 @@ Status FileEventsTablePlugin::processEvents(
     }
 
     if (!row.empty()) {
-      generated_row_list.push_back(std::move(row));
+      {
+        std::lock_guard<std::mutex> lock(d->row_list_mutex);
+        d->row_list.push_back(row);
+      }
     }
   }
 
-  {
-    std::lock_guard<std::mutex> lock(d->row_list_mutex);
+  if (d->row_list.size() > d->max_queued_row_count) {
 
-    // clang-format off
-    d->row_list.insert(
-      d->row_list.end(),
-      std::make_move_iterator(generated_row_list.begin()),
-      std::make_move_iterator(generated_row_list.end())
-    );
-    // clang-format on
+    auto rows_to_remove = d->row_list.size() - d->max_queued_row_count;
 
-    if (d->row_list.size() > d->max_queued_row_count) {
-      auto rows_to_remove = d->row_list.size() - d->max_queued_row_count;
+    d->logger.logMessage(IZeekLogger::Severity::Warning,
+                         "file_events: Dropping " +
+                             std::to_string(rows_to_remove) +
+                             " rows (max row count is set to " +
+                             std::to_string(d->max_queued_row_count) + ")");
 
-      d->logger.logMessage(IZeekLogger::Severity::Warning,
-                           "file_events: Dropping " +
-                               std::to_string(rows_to_remove) +
-                               " rows (max row count is set to " +
-                               std::to_string(d->max_queued_row_count));
-
-      // clang-format off
-      d->row_list.erase(
-        d->row_list.begin(),
-        std::next(d->row_list.begin(), rows_to_remove)
-      );
-      // clang-format on
+    {
+      std::lock_guard<std::mutex> lock(d->row_list_mutex);
+      d->row_list.erase(d->row_list.begin(),
+                        std::next(d->row_list.begin(), rows_to_remove));
     }
   }
 
@@ -125,54 +116,124 @@ FileEventsTablePlugin::FileEventsTablePlugin(IZeekConfiguration &configuration,
   d->max_queued_row_count = d->configuration.maxQueuedRowCount();
 }
 
+std::string FileEventsTablePlugin::CombinePaths(const std::string &cwd,
+                                                const std::string &path) {
+  std::string full_path;
+
+  // Quotes are only present when path contain space
+  if (path[0] == '"') {
+    full_path = path.substr(1, path.size() - 2);
+  } else {
+    full_path = path;
+  }
+
+  // Use cwd when path is not absolute
+  if (full_path[0] != '/') {
+    std::string normalized_cwd;
+
+    if (cwd[0] == '"') {
+      normalized_cwd = cwd.substr(1, cwd.size() - 2);
+    } else {
+      normalized_cwd = cwd;
+    }
+
+    full_path = std::filesystem::path(normalized_cwd) / full_path;
+  }
+  return full_path;
+};
+
 Status FileEventsTablePlugin::generateRow(
     Row &row, const IAudispConsumer::AuditEvent &audit_event) {
   row = {};
 
   std::string action;
+  std::string full_path;
+  std::string inode;
   switch (audit_event.syscall_data.type) {
   case IAudispConsumer::SyscallRecordData::Type::Open:
-    action = "open";
-    break;
+  case IAudispConsumer::SyscallRecordData::Type::OpenAt: {
+    if (!audit_event.cwd_data.has_value()) {
+      return Status::failure("Missing an AUDIT_CWD record from a file event");
+    }
+    if (!audit_event.path_data.has_value()) {
+      return Status::failure("Missing an AUDIT_PATH record from a file event");
+    }
+    if (audit_event.syscall_data.type ==
+        IAudispConsumer::SyscallRecordData::Type::Open)
+      action = "open";
+    else
+      action = "openat";
 
-  case IAudispConsumer::SyscallRecordData::Type::OpenAt:
-    action = "openat";
-    break;
+    std::string working_dir_path;
+    std::string file_path;
+    const auto &path_record = audit_event.path_data.value();
+    const auto &cwd_record = audit_event.cwd_data.value();
 
-  case IAudispConsumer::SyscallRecordData::Type::Create:
+    if (path_record.size() == 1) {
+      working_dir_path = cwd_record;
+      file_path = path_record.at(0).path;
+      inode = std::to_string(path_record.at(0).inode);
+
+    } else if (path_record.size() == 2) {
+      working_dir_path = path_record.at(0).path;
+      file_path = path_record.at(1).path;
+      inode = std::to_string(path_record.at(1).inode);
+
+    } else if (path_record.size() == 3) {
+      working_dir_path = cwd_record;
+      file_path = path_record.at(0).path;
+      inode = std::to_string(path_record.at(0).inode);
+
+    } else {
+      return Status::failure(
+          "Wrong number of path records for open/openat syscall event");
+    }
+    full_path = CombinePaths(working_dir_path, file_path);
+    break;
+  }
+  case IAudispConsumer::SyscallRecordData::Type::Create: {
+    if (!audit_event.path_data.has_value()) {
+      return Status::failure("Missing an AUDIT_PATH record from a file event");
+    }
     action = "create";
+    const auto &path_record = audit_event.path_data.value();
+    if (path_record.size() != 2) {
+      return Status::failure(
+          "Wrong number of path records for create syscall event");
+    }
+    std::string working_dir_path = path_record.at(0).path;
+    std::string file_path = path_record.at(1).path;
+    full_path = CombinePaths(working_dir_path, file_path);
+    inode = std::to_string(path_record.at(1).inode);
     break;
-
-  default:
+  }
+  case IAudispConsumer::SyscallRecordData::Type::Execve:
+  case IAudispConsumer::SyscallRecordData::Type::ExecveAt:
+  case IAudispConsumer::SyscallRecordData::Type::Fork:
+  case IAudispConsumer::SyscallRecordData::Type::VFork:
+  case IAudispConsumer::SyscallRecordData::Type::Clone:
+  case IAudispConsumer::SyscallRecordData::Type::Bind:
+  case IAudispConsumer::SyscallRecordData::Type::Connect:
     return Status::success();
   }
 
-  if (!audit_event.cwd_data.has_value()) {
-    return Status::failure("Missing an AUDIT_CWD record from a file event ");
-  }
-
-  if (!audit_event.path_data.has_value()) {
-    return Status::failure("Missing an AUDIT_PATH record from a file event");
-  }
-
-  const auto &path_record = audit_event.path_data.value();
-  const auto &last_path_entry = path_record.front();
-
   const auto &syscall_data = audit_event.syscall_data;
 
-  row["action"] = action;
+  row["action"] = std::move(action);
   row["pid"] = syscall_data.process_id;
-  row["path"] = syscall_data.exe;
+  row["ppid"] = syscall_data.parent_process_id;
+  row["uid"] = syscall_data.uid;
+  row["gid"] = syscall_data.gid;
   row["auid"] = syscall_data.auid;
-  row["success"] =
-      static_cast<std::int64_t>(audit_event.syscall_data.succeeded ? 1 : 0);
-
+  row["euid"] = syscall_data.euid;
+  row["egid"] = syscall_data.egid;
+  row["path"] = syscall_data.exe;
+  row["file_path"] = std::move(full_path);
+  row["inode"] = std::move(inode);
   auto current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
 
   row["time"] = static_cast<std::int64_t>(current_timestamp.count());
-  row["file_path"] = last_path_entry.path;
-  row["inode"] = last_path_entry.inode;
 
   return Status::success();
 }
