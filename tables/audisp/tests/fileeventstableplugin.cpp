@@ -69,7 +69,7 @@ SCENARIO("Row generation in the file_events table", "[FileEventsTablePlugin]") {
 
       THEN("rows are generated correctly") {
         static ExpectedValueList kExpectedColumnList = {
-            {"action", "create"},
+            {"syscall", "create"},
             {"pid", kCreateAuditEvent.syscall_data.process_id},
             {"ppid", kCreateAuditEvent.syscall_data.parent_process_id},
             {"uid", kCreateAuditEvent.syscall_data.uid},
@@ -77,9 +77,9 @@ SCENARIO("Row generation in the file_events table", "[FileEventsTablePlugin]") {
             {"auid", kCreateAuditEvent.syscall_data.auid},
             {"euid", kCreateAuditEvent.syscall_data.euid},
             {"egid", kCreateAuditEvent.syscall_data.egid},
-            {"path", "/home/wajih/a.out"},
-            {"file_path", "/home/wajih/file.txt"},
-            {"inode", "677951"}};
+            {"exe", "/home/wajih/a.out"},
+            {"path", "/home/wajih/file.txt"},
+            {"inode", static_cast<std::int64_t>(677951)}};
 
         REQUIRE(row.size() == kExpectedColumnList.size() + 1);
 
@@ -143,7 +143,7 @@ SCENARIO("Row generation in the file_events table", "[FileEventsTablePlugin]") {
 
       THEN("rows are generated correctly") {
         static ExpectedValueList kExpectedColumnList = {
-            {"action", "open"},
+            {"syscall", "open"},
             {"pid", kCreateAuditEvent.syscall_data.process_id},
             {"ppid", kCreateAuditEvent.syscall_data.parent_process_id},
             {"uid", kCreateAuditEvent.syscall_data.uid},
@@ -151,9 +151,9 @@ SCENARIO("Row generation in the file_events table", "[FileEventsTablePlugin]") {
             {"auid", kCreateAuditEvent.syscall_data.auid},
             {"euid", kCreateAuditEvent.syscall_data.euid},
             {"egid", kCreateAuditEvent.syscall_data.egid},
-            {"path", "/bin/cat"},
-            {"file_path", "/etc/ssh/sshd_config"},
-            {"inode", "409242"}};
+            {"exe", "/bin/cat"},
+            {"path", "/etc/ssh/sshd_config"},
+            {"inode", static_cast<std::int64_t>(409242)}};
 
         REQUIRE(row.size() == kExpectedColumnList.size() + 1);
 
@@ -225,7 +225,7 @@ SCENARIO("Row generation in the file_events table", "[FileEventsTablePlugin]") {
 
       THEN("rows are generated correctly") {
         static ExpectedValueList kExpectedColumnList = {
-            {"action", "openat"},
+            {"syscall", "openat"},
             {"pid", kCreateAuditEvent.syscall_data.process_id},
             {"ppid", kCreateAuditEvent.syscall_data.parent_process_id},
             {"uid", kCreateAuditEvent.syscall_data.uid},
@@ -233,9 +233,9 @@ SCENARIO("Row generation in the file_events table", "[FileEventsTablePlugin]") {
             {"auid", kCreateAuditEvent.syscall_data.auid},
             {"euid", kCreateAuditEvent.syscall_data.euid},
             {"egid", kCreateAuditEvent.syscall_data.egid},
-            {"path", "/home/wajih/a.out"},
-            {"file_path", "/home/wajih/file.txt"},
-            {"inode", "806807"}};
+            {"exe", "/home/wajih/a.out"},
+            {"path", "/home/wajih/file.txt"},
+            {"inode", static_cast<std::int64_t>(806807)}};
 
         REQUIRE(row.size() == kExpectedColumnList.size() + 1);
 

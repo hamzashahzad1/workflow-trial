@@ -44,7 +44,7 @@ const std::string &FileEventsTablePlugin::name() const {
 
 const FileEventsTablePlugin::Schema &FileEventsTablePlugin::schema() const {
   static const Schema kTableSchema = {
-      {"action", IVirtualTable::ColumnType::String},
+      {"syscall", IVirtualTable::ColumnType::String},
       {"pid", IVirtualTable::ColumnType::Integer},
       {"ppid", IVirtualTable::ColumnType::Integer},
       {"uid", IVirtualTable::ColumnType::Integer},
@@ -52,9 +52,9 @@ const FileEventsTablePlugin::Schema &FileEventsTablePlugin::schema() const {
       {"auid", IVirtualTable::ColumnType::Integer},
       {"euid", IVirtualTable::ColumnType::Integer},
       {"egid", IVirtualTable::ColumnType::Integer},
+      {"exe", IVirtualTable::ColumnType::String},
       {"path", IVirtualTable::ColumnType::String},
-      {"file_path", IVirtualTable::ColumnType::String},
-      {"inode", IVirtualTable::ColumnType::String},
+      {"inode", IVirtualTable::ColumnType::Integer},
       {"time", IVirtualTable::ColumnType::Integer}};
 
   return kTableSchema;
@@ -146,9 +146,9 @@ Status FileEventsTablePlugin::generateRow(
     Row &row, const IAudispConsumer::AuditEvent &audit_event) {
   row = {};
 
-  std::string action;
+  std::string syscall;
   std::string full_path;
-  std::string inode;
+  std::int64_t inode;
   switch (audit_event.syscall_data.type) {
   case IAudispConsumer::SyscallRecordData::Type::Open:
   case IAudispConsumer::SyscallRecordData::Type::OpenAt: {
@@ -160,9 +160,9 @@ Status FileEventsTablePlugin::generateRow(
     }
     if (audit_event.syscall_data.type ==
         IAudispConsumer::SyscallRecordData::Type::Open)
-      action = "open";
+      syscall = "open";
     else
-      action = "openat";
+      syscall = "openat";
 
     std::string working_dir_path;
     std::string file_path;
@@ -172,17 +172,17 @@ Status FileEventsTablePlugin::generateRow(
     if (path_record.size() == 1) {
       working_dir_path = cwd_record;
       file_path = path_record.at(0).path;
-      inode = std::to_string(path_record.at(0).inode);
+      inode = path_record.at(0).inode;
 
     } else if (path_record.size() == 2) {
       working_dir_path = path_record.at(0).path;
       file_path = path_record.at(1).path;
-      inode = std::to_string(path_record.at(1).inode);
+      inode = path_record.at(1).inode;
 
     } else if (path_record.size() == 3) {
       working_dir_path = cwd_record;
       file_path = path_record.at(0).path;
-      inode = std::to_string(path_record.at(0).inode);
+      inode = path_record.at(0).inode;
 
     } else {
       return Status::failure(
@@ -195,7 +195,7 @@ Status FileEventsTablePlugin::generateRow(
     if (!audit_event.path_data.has_value()) {
       return Status::failure("Missing an AUDIT_PATH record from a file event");
     }
-    action = "create";
+    syscall = "create";
     const auto &path_record = audit_event.path_data.value();
     if (path_record.size() != 2) {
       return Status::failure(
@@ -204,7 +204,7 @@ Status FileEventsTablePlugin::generateRow(
     std::string working_dir_path = path_record.at(0).path;
     std::string file_path = path_record.at(1).path;
     full_path = CombinePaths(working_dir_path, file_path);
-    inode = std::to_string(path_record.at(1).inode);
+    inode = path_record.at(1).inode;
     break;
   }
   case IAudispConsumer::SyscallRecordData::Type::Execve:
@@ -219,7 +219,7 @@ Status FileEventsTablePlugin::generateRow(
 
   const auto &syscall_data = audit_event.syscall_data;
 
-  row["action"] = std::move(action);
+  row["syscall"] = std::move(syscall);
   row["pid"] = syscall_data.process_id;
   row["ppid"] = syscall_data.parent_process_id;
   row["uid"] = syscall_data.uid;
@@ -227,9 +227,9 @@ Status FileEventsTablePlugin::generateRow(
   row["auid"] = syscall_data.auid;
   row["euid"] = syscall_data.euid;
   row["egid"] = syscall_data.egid;
-  row["path"] = syscall_data.exe;
-  row["file_path"] = std::move(full_path);
-  row["inode"] = std::move(inode);
+  row["exe"] = syscall_data.exe;
+  row["path"] = std::move(full_path);
+  row["inode"] = inode;
   auto current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::system_clock::now().time_since_epoch());
 
