@@ -166,8 +166,8 @@ function(zeekAgentLibrariesOpenSSL)
 
   add_library(thirdparty_openssl INTERFACE)
   target_link_libraries(thirdparty_openssl INTERFACE
-    thirdparty_openssl_libssl
     thirdparty_openssl_libcrypto
+    thirdparty_openssl_libssl
   )
 endfunction()
 
